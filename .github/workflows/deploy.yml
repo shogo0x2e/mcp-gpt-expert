@@ -29,7 +29,6 @@ jobs:
         run: |
           cat > .env << EOF
           OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
-          SERPER_API_KEY=${{ secrets.SERPER_API_KEY }}
           DISCORD_WEBHOOK_URL=${{ secrets.DISCORD_WEBHOOK_URL }}
           GPT_MODEL=gpt-4o
           EOF
