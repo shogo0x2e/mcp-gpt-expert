@@ -36,10 +36,14 @@ jobs:
       - name: Setup systemd service directory
         run: mkdir -p ~/.config/systemd/user
 
-      - name: Install systemd service
+      - name: Generate systemd service file from template
         run: |
-          cp systemd/mcp-gpt-expert.service ~/.config/systemd/user/
-          systemctl --user daemon-reload
+          sed "s|{{PROJECT_DIR}}|$GITHUB_WORKSPACE|g" \
+            systemd/mcp-gpt-expert.service.template > \
+            ~/.config/systemd/user/mcp-gpt-expert.service
+
+      - name: Reload systemd
+        run: systemctl --user daemon-reload
 
       - name: Restart service
         run: |

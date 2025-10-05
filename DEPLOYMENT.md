@@ -30,7 +30,6 @@ Verify the runner is online in GitHub Settings → Actions → Runners
 Add the following secrets in your repository: Settings → Secrets and variables → Actions
 
 - `OPENAI_API_KEY`: Your OpenAI API key
-- `SERPER_API_KEY`: Your Serper.dev API key
 - `DISCORD_WEBHOOK_URL`: Discord webhook URL for error notifications
 
 ### 3. Initial Deployment
@@ -48,9 +47,11 @@ npm run build
 cp .env.example .env
 # Edit .env and add your API keys
 
-# Install systemd service
+# Generate and install systemd service from template
 mkdir -p ~/.config/systemd/user
-cp systemd/mcp-gpt-expert.service ~/.config/systemd/user/
+sed "s|{{PROJECT_DIR}}|$(pwd)|g" \
+  systemd/mcp-gpt-expert.service.template > \
+  ~/.config/systemd/user/mcp-gpt-expert.service
 systemctl --user daemon-reload
 systemctl --user enable mcp-gpt-expert
 systemctl --user start mcp-gpt-expert
@@ -83,9 +84,22 @@ journalctl --user -u mcp-gpt-expert -f
 2. GitHub Actions triggers on self-hosted runner
 3. Runner builds the project
 4. Runner generates `.env` from GitHub Secrets
-5. Runner installs/updates systemd service
-6. Service automatically restarts
-7. Deployment status reported in GitHub Actions
+5. Runner generates systemd service file from template (replaces `{{PROJECT_DIR}}` with actual path)
+6. Runner installs/updates systemd service
+7. Service automatically restarts
+8. Deployment status reported in GitHub Actions
+
+## Security Notes
+
+### systemd Service Template
+
+The systemd service file uses a template (`systemd/mcp-gpt-expert.service.template`) to avoid hardcoding absolute paths and usernames in the repository. This:
+
+- Prevents exposure of system structure and usernames
+- Makes the service file portable across different environments
+- Follows security best practices for public repositories
+
+The template uses `{{PROJECT_DIR}}` placeholder which is replaced with the actual project directory during deployment.
 
 ## Troubleshooting
 
@@ -96,10 +110,9 @@ journalctl --user -u mcp-gpt-expert -f
 journalctl --user -u mcp-gpt-expert -n 50
 
 # Verify .env file exists and has correct values
-cat /home/shogo/prog/mcp-gpt-expert/.env
+cat .env
 
 # Manually test the server
-cd /home/shogo/prog/mcp-gpt-expert
 node dist/index.js
 ```
 

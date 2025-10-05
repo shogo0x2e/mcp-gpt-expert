@@ -4,9 +4,9 @@ After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=/home/shogo/prog/mcp-gpt-expert
-EnvironmentFile=/home/shogo/prog/mcp-gpt-expert/.env
-ExecStart=/usr/bin/node /home/shogo/prog/mcp-gpt-expert/dist/index.js
+WorkingDirectory={{PROJECT_DIR}}
+EnvironmentFile={{PROJECT_DIR}}/.env
+ExecStart=/usr/bin/node {{PROJECT_DIR}}/dist/index.js
 Restart=always
 RestartSec=10
 StandardOutput=journal
