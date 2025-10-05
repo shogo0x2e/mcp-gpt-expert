@@ -38,23 +38,30 @@ jobs:
 
       - name: Generate systemd service file from template
         run: |
+          export XDG_RUNTIME_DIR=/run/user/$(id -u)
           sed "s|{{PROJECT_DIR}}|$GITHUB_WORKSPACE|g" \
             systemd/mcp-gpt-expert.service.template > \
             ~/.config/systemd/user/mcp-gpt-expert.service
 
       - name: Reload systemd
-        run: systemctl --user daemon-reload
+        run: |
+          export XDG_RUNTIME_DIR=/run/user/$(id -u)
+          systemctl --user daemon-reload
 
       - name: Restart service
         run: |
+          export XDG_RUNTIME_DIR=/run/user/$(id -u)
           systemctl --user enable mcp-gpt-expert
           systemctl --user restart mcp-gpt-expert
 
       - name: Check service status
-        run: systemctl --user status mcp-gpt-expert --no-pager
+        run: |
+          export XDG_RUNTIME_DIR=/run/user/$(id -u)
+          systemctl --user status mcp-gpt-expert --no-pager
 
       - name: Deployment summary
         run: |
+          export XDG_RUNTIME_DIR=/run/user/$(id -u)
           echo "✅ Deployment completed successfully!"
           echo "Service: mcp-gpt-expert"
           echo "Status: $(systemctl --user is-active mcp-gpt-expert)"
