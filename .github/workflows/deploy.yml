@@ -1,0 +1,57 @@
+name: Deploy MCP GPT Expert
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Generate .env file
+        run: |
+          cat > .env << EOF
+          OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+          SERPER_API_KEY=${{ secrets.SERPER_API_KEY }}
+          DISCORD_WEBHOOK_URL=${{ secrets.DISCORD_WEBHOOK_URL }}
+          GPT_MODEL=gpt-4o
+          EOF
+
+      - name: Setup systemd service directory
+        run: mkdir -p ~/.config/systemd/user
+
+      - name: Install systemd service
+        run: |
+          cp systemd/mcp-gpt-expert.service ~/.config/systemd/user/
+          systemctl --user daemon-reload
+
+      - name: Restart service
+        run: |
+          systemctl --user enable mcp-gpt-expert
+          systemctl --user restart mcp-gpt-expert
+
+      - name: Check service status
+        run: systemctl --user status mcp-gpt-expert --no-pager
+
+      - name: Deployment summary
+        run: |
+          echo "✅ Deployment completed successfully!"
+          echo "Service: mcp-gpt-expert"
+          echo "Status: $(systemctl --user is-active mcp-gpt-expert)"
